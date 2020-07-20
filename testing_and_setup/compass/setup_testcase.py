@@ -1718,9 +1718,16 @@ if __name__ == "__main__":
     # Build variables for history output
     old_dir = os.getcwd()
     os.chdir(config.get('script_paths', 'script_path'))
-    git_version = subprocess.check_output(
-        ['git', 'describe', '--tags', '--dirty']).decode('utf-8')
-    git_version = git_version.strip('\n')
+    try:
+        git_version = subprocess.check_output(
+            ['git', 'describe', '--tags', '--dirty']).decode('utf-8')
+        git_version = git_version.strip('\n')
+    except subprocess.CalledProcessError:
+        # Some build systems (e.g., containers) do not have `git`
+        # installed or do not have access to the repository's `.git/` directory.
+        # If the call to `git` fails, just add a default value.
+        git_version = "Unknown"
+
     calling_command = ""
     for arg in sys.argv:
         calling_command = "{}{} ".format(calling_command, arg)
